@@ -4,18 +4,11 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-<<<<<<< HEAD
-    "dev": "next dev --turbopack",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
-=======
     "dev": "vite --host --port 3000",
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "preview": "vite preview --host --port 3000",
     "lint": "eslint ."
->>>>>>> 08ad7091ae49eb298c54b7ee7fae488c252bee52
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
