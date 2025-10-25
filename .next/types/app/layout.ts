@@ -1,4 +1,4 @@
-// File: C:\Users\hares\OneDrive\Desktop\CS Projects\HackOHIO\HackOHIO-2025\app\layout.tsx
+// File: C:\Users\hares\OneDrive\Desktop\CS_Projects\HackOHIO\HackOHIO-2025\app\layout.tsx
 import * as entry from '../../../app/layout.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,48 +18,12 @@ export const AuthForm = () => {
     setLoading(true);
 
     try {
-      if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        if (error) throw error;
-        toast({
-          title: "Welcome back!",
-          description: "You've successfully logged in.",
-        });
-      } else {
-        const { data: authData, error: signUpError } = await supabase.auth.signUp({
-          email,
-          password,
-        });
-        if (signUpError) throw signUpError;
-
-        if (authData.user) {
-          // Create profile
-          const { error: profileError } = await supabase
-            .from("profiles")
-            .insert({
-              user_id: authData.user.id,
-              full_name: fullName,
-            });
-          if (profileError) throw profileError;
-
-          // Assign patient role
-          const { error: roleError } = await supabase
-            .from("user_roles")
-            .insert({
-              user_id: authData.user.id,
-              role: "patient",
-            });
-          if (roleError) throw roleError;
-
-          toast({
-            title: "Account created!",
-            description: "Welcome to Aegis. You can now log in.",
-          });
-        }
-      }
+      // In demo mode, we just simulate a successful login
+      await new Promise(resolve => setTimeout(resolve, 500)); // Add a small delay for UX
+      toast({
+        title: "Demo Mode",
+        description: "Logging in with demo account...",
+      });
     } catch (error: any) {
       toast({
         title: "Error",

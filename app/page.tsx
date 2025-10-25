@@ -2,9 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-// Force dynamic rendering
-export const dynamic = 'force-dynamic';
-import { supabase } from "@/integrations/supabase/client";
+// Supabase removed - using demo/local stubs
 import { AuthForm } from "@/components/auth/AuthForm";
 import { WoundUpload } from "@/components/dashboard/WoundUpload";
 import { AssessmentHistory } from "@/components/dashboard/AssessmentHistory";
@@ -14,48 +12,26 @@ import { Activity, LogOut, Shield } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function HomePage() {
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<any>({ id: 'demo', name: 'Demo User' });
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!supabase) return;
-    
-    supabase.auth.getSession().then(({ data: { session } }: { data: { session: any } }) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event: string, session: any) => {
-      setUser(session?.user ?? null);
-    });
-
-    return () => subscription.unsubscribe();
+    // Demo app: no external auth. Keep effect for parity with previous behavior.
+    return () => {};
   }, []);
 
   const handleLogout = async () => {
-    if (!supabase) return;
-    await supabase.auth.signOut();
+    // Demo mode - logout is a no-op
     toast({
-      title: "Logged out",
-      description: "You've been successfully logged out.",
+      title: "Demo Mode",
+      description: "Logout is disabled in demo mode.",
     });
   };
 
   const handleAnalysisComplete = () => {
     setRefreshTrigger((prev) => prev + 1);
   };
-
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="animate-pulse text-lg">Loading...</div>
-      </div>
-    );
-  }
 
   if (!user) {
     return (
@@ -112,3 +88,4 @@ export default function HomePage() {
     </div>
   );
 }
+

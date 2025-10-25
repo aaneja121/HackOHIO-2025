@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import Image from "next/image";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -30,17 +30,19 @@ export const AssessmentHistory = ({ refreshTrigger }: AssessmentHistoryProps) =>
 
   const loadAssessments = async () => {
     try {
-      const user = (await supabase.auth.getUser()).data.user;
-      if (!user) return;
-
-      const { data, error } = await supabase
-        .from("wound_assessments")
-        .select("*")
-        .eq("patient_id", user.id)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setAssessments(data || []);
+      setLoading(true);
+      // Load from localStorage in demo mode
+      const storedAssessments = localStorage.getItem('wound_assessments');
+      const data = storedAssessments ? JSON.parse(storedAssessments) : [];
+      
+      // Sort by created_at date descending (handle nulls)
+      data.sort((a: Assessment, b: Assessment) => {
+        const ta = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const tb = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return tb - ta;
+      });
+      
+      setAssessments(data);
     } catch (error) {
       console.error("Error loading assessments:", error);
     } finally {
@@ -102,11 +104,14 @@ export const AssessmentHistory = ({ refreshTrigger }: AssessmentHistoryProps) =>
                 <Card key={assessment.id}>
                   <CardContent className="p-4">
                     <div className="flex gap-4">
-                      <img
-                        src={assessment.image_url}
-                        alt="Wound assessment"
-                        className="w-24 h-24 object-cover rounded-md"
-                      />
+                      <div className="relative w-24 h-24">
+                        <Image
+                          src={assessment.image_url}
+                          alt="Wound assessment"
+                          fill
+                          className="object-cover rounded-md"
+                        />
+                      </div>
                       <div className="flex-1 space-y-2">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">

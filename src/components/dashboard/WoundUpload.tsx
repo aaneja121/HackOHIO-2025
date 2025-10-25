@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
@@ -17,61 +16,41 @@ export const WoundUpload = ({ onAnalysisComplete }: WoundUploadProps) => {
   const handleFileUpload = async (file: File) => {
     try {
       setUploading(true);
-      const user = (await supabase.auth.getUser()).data.user;
-      if (!user) throw new Error("Not authenticated");
-
-      // Convert image to base64
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
       
-      await new Promise((resolve, reject) => {
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = reject;
-      });
-
-      const imageBase64 = reader.result as string;
-
-      // Upload to storage
-      const fileName = `${user.id}/${Date.now()}-${file.name}`;
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from("wound-images")
-        .upload(fileName, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from("wound-images")
-        .getPublicUrl(fileName);
-
+      // Create a local URL for the uploaded image
+      const imageUrl = URL.createObjectURL(file);
+      
       setUploading(false);
       setAnalyzing(true);
 
       toast({
         title: "Analyzing wound...",
-        description: "Our AI is examining your image for signs of infection.",
+        description: "Processing your image (demo mode)...",
       });
 
-      // Call analysis edge function
-      const { data: analysisData, error: analysisError } = await supabase.functions.invoke(
-        "analyze-wound",
-        {
-          body: { imageBase64, patientId: user.id },
-        }
-      );
+      // Simulate analysis delay
+      await new Promise(resolve => setTimeout(resolve, 1500));
 
-      if (analysisError) throw analysisError;
+      // Demo analysis response
+      const analysisData = {
+        riskScore: 25,
+        status: 'healthy',
+        analysis: 'No obvious signs of infection detected. The wound appears to be healing normally.',
+        recommendations: 'Continue following standard wound care instructions. Keep the area clean and dry.',
+      };
 
-      // Save assessment to database
-      const { error: dbError } = await supabase.from("wound_assessments").insert({
-        patient_id: user.id,
-        image_url: publicUrl,
+      // Store analysis in localStorage for demo persistence
+      const assessments = JSON.parse(localStorage.getItem('wound_assessments') || '[]');
+      assessments.push({
+        id: Date.now(),
+        created_at: new Date().toISOString(),
+        image_url: imageUrl,
         risk_score: analysisData.riskScore,
         status: analysisData.status,
         ai_analysis: analysisData.analysis,
         recommendations: analysisData.recommendations,
       });
-
-      if (dbError) throw dbError;
+      localStorage.setItem('wound_assessments', JSON.stringify(assessments));
 
       toast({
         title: "Analysis complete!",
@@ -126,7 +105,6 @@ export const WoundUpload = ({ onAnalysisComplete }: WoundUploadProps) => {
               type="file"
               id="wound-upload"
               accept="image/*"
-              capture="environment"
               onChange={handleFileSelect}
               disabled={uploading || analyzing}
               className="hidden"
