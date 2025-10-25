@@ -1,0 +1,4 @@
+project_id = "ovysruaaystpmuwcwhse"
+
+[functions.analyze-wound]
+verify_jwt = true
