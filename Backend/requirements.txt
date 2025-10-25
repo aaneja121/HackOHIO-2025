@@ -6,6 +6,3 @@ numpy==2.1.2
 sqlmodel==0.0.22
 pydantic==2.9.2
 python-dotenv==1.0.1
-# For real inference (pick one stack for the event; comment out the other)
-tensorflow==2.17.0
-# onnxruntime==1.19.2
