@@ -9,11 +9,11 @@ import { format } from "date-fns";
 interface Assessment {
   id: string;
   image_url: string;
-  risk_score: number;
+  risk_score: number | null;
   status: string;
-  ai_analysis: string;
-  recommendations: string;
-  created_at: string;
+  ai_analysis: string | null;
+  recommendations: string | null;
+  created_at: string | null;
 }
 
 interface AssessmentHistoryProps {
@@ -115,14 +115,14 @@ export const AssessmentHistory = ({ refreshTrigger }: AssessmentHistoryProps) =>
                               {assessment.status.toUpperCase()}
                             </Badge>
                             <span className="text-sm text-muted-foreground">
-                              Risk Score: {assessment.risk_score}/100
+                              Risk Score: {assessment.risk_score || 0}/100
                             </span>
                           </div>
                           <span className="text-xs text-muted-foreground">
-                            {format(new Date(assessment.created_at), "MMM d, yyyy")}
+                            {assessment.created_at ? format(new Date(assessment.created_at), "MMM d, yyyy") : "Unknown date"}
                           </span>
                         </div>
-                        <p className="text-sm line-clamp-2">{assessment.ai_analysis}</p>
+                        <p className="text-sm line-clamp-2">{assessment.ai_analysis || "No analysis available"}</p>
                         {assessment.recommendations && (
                           <p className="text-xs text-muted-foreground">
                             <strong>Recommendation:</strong> {assessment.recommendations}
