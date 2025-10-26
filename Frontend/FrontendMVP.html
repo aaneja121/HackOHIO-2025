@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Aegis – Post‑Surgical Recovery Assistant (MVP)</title>
+  <style>
+    :root {
+      --bg: #0b1020; /* deep navy */
+      --panel: #121a33; /* indigo panel */
+      --muted: #93a1b1; /* slate */
+      --text: #e6ecf2; /* near-white */
+      --accent: #7dd3fc; /* sky */
+      --accent-2: #a78bfa; /* violet */
+      --ok: #22c55e; /* green */
+      --warn: #ef4444; /* red */
+      --card: #0f162b; /* card bg */
+      --chip: #192243; /* chip bg */
+      --border: #1f2a4d; /* border */
+      --shadow: 0 10px 24px rgba(0,0,0,.35);
+      --radius: 16px;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial;
+      color: var(--text);
+      background: radial-gradient(1200px 800px at 80% -10%, #1b2350 0%, var(--bg) 60%);
+    }
+    a { color: var(--accent); text-decoration: none; }
+
+    .container {
+      max-width: 1120px; margin: 32px auto; padding: 0 16px;
+    }
+
+    .nav {
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.0));
+      border: 1px solid var(--border);
+      padding: 10px 14px; border-radius: 14px; backdrop-filter: blur(6px);
+      box-shadow: var(--shadow);
+    }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: .3px; }
+    .brand .badge { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); display: grid; place-items: center; color: #0b1020; font-weight: 900; }
+
+    .user-chip { display:flex; align-items:center; gap:10px; background:var(--chip); border:1px solid var(--border); padding:8px 10px; border-radius: 999px; }
+    .user-dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 0 3px rgba(34,197,94,.15); }
+
+    .grid {
+      display: grid; gap: 16px; margin-top: 16px;
+      grid-template-columns: 1.2fr 1fr; /* left wider */
+    }
+    @media (max-width: 980px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.0));
+      border: 1px solid var(--border); border-radius: var(--radius);
+      box-shadow: var(--shadow); overflow: hidden;
+    }
+    .card h3 { margin: 0; font-size: 18px; letter-spacing: .2px; }
+    .card-header {
+      display:flex; align-items:center; justify-content: space-between; gap: 12px;
+      padding: 14px 16px; border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,0));
+    }
+    .card-body { padding: 16px; }
+
+    .subtle { color: var(--muted); font-size: 14px; }
+    .chip { background: var(--chip); border:1px solid var(--border); padding: 6px 10px; border-radius: 999px; font-size: 12px; color: var(--muted); }
+
+    /* Auth panel */
+    .auth {
+      display:flex; align-items:center; gap: 10px; flex-wrap:wrap;
+    }
+    .auth input {
+      background: #0b1226; border: 1px solid var(--border); color: var(--text);
+      padding: 10px 12px; border-radius: 10px; outline: none; min-width: 220px;
+    }
+    .btn { cursor: pointer; padding: 10px 14px; border-radius: 12px; border: 1px solid var(--border); background: #0d1630; color: var(--text); font-weight: 600; }
+    .btn:hover { filter: brightness(1.08); }
+    .btn.primary { background: linear-gradient(135deg, var(--accent-2), var(--accent)); color: #0a0f23; border: none; }
+    .btn.ghost { background: transparent; }
+
+    /* Checklist */
+    .checklist { display: grid; gap: 10px; }
+    .task {
+      display:flex; align-items:center; justify-content: space-between; gap: 12px;
+      background: var(--card); border:1px solid var(--border); padding: 10px 12px; border-radius: 12px;
+    }
+    .task .left { display:flex; align-items:center; gap: 10px; }
+    .task input[type="checkbox"] { width: 18px; height: 18px; }
+
+    /* Upload */
+    .upload {
+      border: 2px dashed var(--border); border-radius: 14px; padding: 18px; text-align: center; background: #0d1430;
+    }
+    .preview { margin-top: 12px; display:flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    .preview img { width: 120px; height: 120px; object-fit: cover; border-radius: 12px; border:1px solid var(--border); }
+
+    /* Camera */
+    .camera { margin-top: 14px; background: var(--card); border:1px solid var(--border); border-radius: 12px; padding: 12px; }
+    .camera video { width: 100%; max-height: 320px; background: #0b1226; border-radius: 10px; border: 1px solid var(--border); }
+    .cam-controls { margin-top: 10px; display:flex; gap:10px; flex-wrap: wrap; }
+
+    .result {
+      display:grid; gap: 8px; margin-top: 10px; padding: 12px; border-radius: 12px; border:1px solid var(--border); background: var(--card);
+    }
+    .badge { display:inline-flex; align-items:center; gap:8px; padding: 6px 10px; border-radius:999px; font-weight:700; }
+    .badge.ok { background: rgba(34,197,94,.12); color: #86efac; border: 1px solid rgba(34,197,94,.25); }
+    .badge.warn { background: rgba(239,68,68,.12); color: #fecaca; border: 1px solid rgba(239,68,68,.25); }
+
+    .row { display:flex; align-items:center; gap: 10px; flex-wrap: wrap; }
+
+    /* History chart */
+    .chart-wrap { background: var(--card); border:1px solid var(--border); border-radius: 12px; padding: 12px; }
+    canvas { width: 100%; height: 220px; display:block; }
+
+    /* Footer */
+    .footer { margin: 24px 0; color: var(--muted); font-size: 13px; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <nav class="nav">
+      <div class="brand">
+        <div class="badge" aria-hidden>Æ</div>
+        <div>
+          <div style="font-size:15px">Aegis</div>
+          <div class="subtle" style="font-size:12px; margin-top:-2px">AI Post‑Surgical Recovery Assistant</div>
+        </div>
+      </div>
+      <div class="auth" id="authPanel">
+        <input id="email" type="email" placeholder="demo@patient.com" />
+        <button class="btn primary" id="loginBtn">Sign in (mock)</button>
+        <button class="btn ghost" id="logoutBtn" style="display:none">Sign out</button>
+        <div class="user-chip" id="userChip" style="display:none">
+          <span class="user-dot"></span>
+          <span id="chipText">Signed in</span>
+        </div>
+      </div>
+    </nav>
+
+    <div class="grid" style="margin-top:18px">
+      <!-- Left Column: Daily checklist & Upload -->
+      <section class="card">
+        <div class="card-header">
+          <h3>Today’s Recovery Checklist</h3>
+          <span class="chip" id="todayStr">—</span>
+        </div>
+        <div class="card-body">
+          <div class="checklist" id="checklist">
+            <!-- tasks injected by JS -->
+          </div>
+
+          <h3 style="margin:18px 0 8px 0">Wound Photo (for AI check)</h3>
+          <div class="upload" id="dropZone">
+            <p class="subtle" style="margin:0 0 8px 0">Drag & drop a photo here, or click to select.</p>
+            <input id="fileInput" type="file" accept="image/*" style="display:none" />
+            <button class="btn" id="pickBtn">Choose Image</button>
+            <div class="preview" id="preview"></div>
+            <div class="row" style="margin-top:12px">
+              <button class="btn primary" id="analyzeBtn" disabled>Analyze with AI</button>
+              <span class="subtle" id="statusHint">No image selected</span>
+            </div>
+          </div>
+
+          <div class="camera" id="cameraBox" style="margin-top:14px">
+            <video id="video" autoplay playsinline muted></video>
+            <div class="cam-controls">
+              <button class="btn" id="startCamBtn">Start Camera</button>
+              <button class="btn" id="captureBtn" disabled>Capture Photo</button>
+              <button class="btn ghost" id="stopCamBtn" disabled>Stop</button>
+            </div>
+            <small class="subtle">Tip: allow camera permissions. On mobile, the rear camera may be used automatically.</small>
+          </div>
+
+          <div id="result" class="result" style="display:none"></div>
+        </div>
+      </section>
+
+      <!-- Right Column: Risk, History, Info -->
+      <aside class="card">
+        <div class="card-header">
+          <h3>Risk & Activity</h3>
+          <span class="chip">Demo mode</span>
+        </div>
+        <div class="card-body">
+          <div class="chart-wrap">
+            <div class="row" style="justify-content:space-between">
+              <div>
+                <div class="subtle" style="font-size:12px">Aegis Risk Score (0–100)</div>
+                <div style="font-size:28px; font-weight:800" id="riskNow">—</div>
+              </div>
+              <button class="btn" id="resetHistoryBtn" title="Clear local history">Reset</button>
+            </div>
+            <canvas id="riskChart" width="600" height="220" aria-label="Risk score history"></canvas>
+          </div>
+
+          <div style="margin-top:16px" class="subtle">
+            <strong>How this demo works:</strong> Images are sent to your backend endpoint for inference. The returned JSON should include a numeric <code>risk</code> (0–100) and a text <code>status</code> (e.g., "Healthy" or "Potential infection").
+          </div>
+
+          <div style="margin-top:10px; display:grid; gap:8px;">
+            <label class="subtle" for="backendUrl">Backend URL</label>
+            <input id="backendUrl" placeholder="https://your-backend.example.com/infer" style="background:#0b1226;border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:10px" />
+            <small class="subtle">Point this to your FastAPI endpoint (e.g., <code>POST /infer</code>)</small>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="footer">© <span id="year"></span> Aegis – Hackathon MVP. For demo purposes only. Not a medical device.</div>
+  </div>
+
+  <script>
+  // ===== Stable, crash-safe JS (rebuilt) =====
+  (function(){
+    // Helpers
+    const $ = (id) => document.getElementById(id);
+    const el = $; // alias
+
+    const DEFAULT_TASKS = [
+      { id: 't1', label: 'Take wound photo', done: false },
+      { id: 't2', label: 'Log pain level', done: false },
+      { id: 't3', label: 'Walk for 5 minutes', done: false },
+      { id: 't4', label: 'Medication taken', done: false },
+    ];
+    const STORAGE_KEYS = {
+      email: 'aegis_email',
+      tasks: 'aegis_tasks_',
+      riskHistory: 'aegis_risk_history',
+      backendUrl: 'aegis_backend_url'
+    };
+
+    // Date/strings
+    function fmtTodayKey(){ return new Date().toISOString().slice(0,10); }
+    function setTodayStr(){
+      const d = new Date();
+      const opts = { weekday:'short', year:'numeric', month:'short', day:'numeric' };
+      const todayStr = d.toLocaleDateString(undefined, opts);
+      const ts = el('todayStr'); if (ts) ts.textContent = todayStr;
+      const yr = el('year'); if (yr) yr.textContent = d.getFullYear();
+    }
+
+    // Tasks
+    function loadTasks(){
+      const raw = localStorage.getItem(STORAGE_KEYS.tasks + fmtTodayKey());
+      return raw ? JSON.parse(raw) : DEFAULT_TASKS.map(t=>({...t}));
+    }
+    function saveTasks(tasks){ localStorage.setItem(STORAGE_KEYS.tasks + fmtTodayKey(), JSON.stringify(tasks)); }
+    function renderChecklist(){
+      const wrap = el('checklist'); if (!wrap) return;
+      wrap.innerHTML = '';
+      const tasks = loadTasks();
+      tasks.forEach(task=>{
+        const row = document.createElement('div');
+        row.className = 'task';
+        row.innerHTML = `
+          <div class="left">
+            <input type="checkbox" ${task.done ? 'checked' : ''} data-id="${task.id}" />
+            <div>${task.label}</div>
+          </div>
+          <span class="chip">${task.done ? 'Done' : 'Pending'}</span>`;
+        const cb = row.querySelector('input');
+        cb.addEventListener('change', (e)=>{
+          const list = loadTasks();
+          const idx = list.findIndex(t=>t.id===task.id);
+          if (idx!==-1){ list[idx].done = e.target.checked; saveTasks(list); renderChecklist(); }
+        });
+        wrap.appendChild(row);
+      });
+    }
+
+    // Mock auth
+    function initAuth(){
+      const email = localStorage.getItem(STORAGE_KEYS.email);
+      const signed = !!email;
+      const lo = el('logoutBtn'); if (lo) lo.style.display = signed?'inline-block':'none';
+      const uc = el('userChip'); if (uc) uc.style.display = signed?'flex':'none';
+      const ct = el('chipText'); if (ct) ct.textContent = signed?email:'';
+      const em = el('email'); if (em) em.value = email || '';
+    }
+    function signIn(){
+      const em = el('email');
+      const email = (em && em.value.trim()) || 'demo@patient.com';
+      localStorage.setItem(STORAGE_KEYS.email, email);
+      initAuth();
+    }
+    function signOut(){ localStorage.removeItem(STORAGE_KEYS.email); initAuth(); }
+
+    // Upload / DnD
+    let selectedFile = null;
+    function initUpload(){
+      const dz = el('dropZone'); const fi = el('fileInput'); const pb = el('pickBtn'); const ab = el('analyzeBtn');
+      if (!dz || !fi || !pb || !ab) return;
+      const setHint = (m)=>{ const h = el('statusHint'); if (h) h.textContent = m; };
+      const setAnalyzeEnabled = (on)=>{ ab.disabled = !on; };
+      function handleFiles(files){
+        if (!files || !files[0]) return;
+        selectedFile = files[0];
+        setHint(`${selectedFile.name} (${Math.round(selectedFile.size/1024)} KB)`);
+        setAnalyzeEnabled(true);
+        const url = URL.createObjectURL(selectedFile);
+        const pv = el('preview'); if (pv) pv.innerHTML = `<img src="${url}" alt="preview" />`;
+      }
+      pb.addEventListener('click', ()=> fi.click());
+      fi.addEventListener('change', (e)=> handleFiles(e.target.files));
+      dz.addEventListener('dragover', (e)=>{ e.preventDefault(); dz.style.borderColor = 'var(--accent)'; });
+      dz.addEventListener('dragleave', ()=>{ dz.style.borderColor = 'var(--border)'; });
+      dz.addEventListener('drop', (e)=>{ e.preventDefault(); dz.style.borderColor = 'var(--border)'; handleFiles(e.dataTransfer.files); });
+      ab.addEventListener('click', analyzeImage);
+    }
+
+    // Webcam
+    let camStream = null;
+    const facingMode = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ? 'environment' : 'user';
+    async function startCamera(){
+      try{
+        camStream = await (navigator.mediaDevices && navigator.mediaDevices.getUserMedia ? navigator.mediaDevices.getUserMedia({ video:{ facingMode }, audio:false }) : null);
+        const video = el('video'); if (!video) return;
+        if (!camStream) throw new Error('Camera API not available');
+        video.srcObject = camStream; await video.play();
+        const cap = el('captureBtn'); if (cap) cap.disabled = false;
+        const stop = el('stopCamBtn'); if (stop) stop.disabled = false;
+      }catch(err){ alert('Camera error: ' + err.message); }
+    }
+    function stopCamera(){ if (camStream){ camStream.getTracks().forEach(t=>t.stop()); camStream=null; } const v=el('video'); if (v) v.srcObject=null; const cap=el('captureBtn'); if (cap) cap.disabled=true; const stop=el('stopCamBtn'); if (stop) stop.disabled=true; }
+    function dataURLToFile(dataUrl, filename){ const arr=dataUrl.split(','), mime=arr[0].match(/:(.*?);/)[1]; const bstr=atob(arr[1]); let n=bstr.length; const u8=new Uint8Array(n); while(n--) u8[n]=bstr.charCodeAt(n); return new File([u8], filename, { type:mime }); }
+    async function capturePhoto(){
+      const video = el('video'); if (!video || !video.videoWidth){ alert('Camera not ready yet.'); return; }
+      const maxW = 1280, scale = Math.min(1, maxW / video.videoWidth);
+      const w = Math.round(video.videoWidth * scale), h = Math.round(video.videoHeight * scale);
+      const c = document.createElement('canvas'); c.width=w; c.height=h; const ctx=c.getContext('2d');
+      ctx.drawImage(video, 0, 0, w, h);
+      const dataUrl = c.toDataURL('image/jpeg', 0.9);
+      const file = dataURLToFile(dataUrl, 'capture.jpg'); selectedFile = file;
+      const hint = el('statusHint'); if (hint) hint.textContent = `Captured photo (${Math.round(file.size/1024)} KB)`;
+      const pv = el('preview'); if (pv) pv.innerHTML = `<img src="${dataUrl}" alt="capture" />`;
+      const ab = el('analyzeBtn'); if (ab) ab.disabled = false;
+    }
+
+    // Backend URL
+    function loadBackendUrl(){ const v = localStorage.getItem(STORAGE_KEYS.backendUrl) || ''; const i = el('backendUrl'); if (i) i.value = v; }
+    function saveBackendUrl(){ const i = el('backendUrl'); if (i) localStorage.setItem(STORAGE_KEYS.backendUrl, i.value.trim()); }
+
+    // Analyze
+    async function analyzeImage(){
+      const ab = el('analyzeBtn'); if (!ab) return;
+      if (!selectedFile){ alert('Please choose or capture an image first.'); return; }
+      const backend = (el('backendUrl') && el('backendUrl').value.trim()) || '';
+      const old = ab.textContent; ab.textContent='Analyzing…'; ab.disabled=true; const resBox = el('result'); if (resBox) resBox.style.display='none';
+      const done = ()=>{ ab.textContent=old; ab.disabled=false; };
+      try{
+        if (backend){
+          const form = new FormData(); form.append('image', selectedFile); form.append('user', localStorage.getItem(STORAGE_KEYS.email)||'demo@patient.com');
+          const r = await fetch(backend, { method:'POST', body: form }); if (!r.ok) throw new Error(`HTTP ${r.status}`);
+          const data = await r.json(); renderResult(data); pushRiskHistory({ t: Date.now(), risk: clamp(Number(data.risk)||0, 0, 100) }); drawChart(); done(); return;
+        }
+        const { risk, status, details } = await localHeuristicRisk(selectedFile); renderResult({ risk, status, details }); pushRiskHistory({ t: Date.now(), risk }); drawChart();
+      }catch(err){
+        try{ const { risk, status, details } = await localHeuristicRisk(selectedFile); renderResult({ risk, status, details:`Fallback local analysis. ${details}` }); pushRiskHistory({ t: Date.now(), risk }); drawChart(); } catch(e2){ renderResult({ error: String(err) }); }
+      } finally{ done(); }
+    }
+
+    // Local heuristic
+    async function localHeuristicRisk(file){
+      const img = await toBitmapOrImage(file);
+      const metrics = analyzeBitmap(img);
+      const risk = heuristicScore(metrics);
+      const status = risk < 50 ? 'Healthy' : 'Potential infection';
+      const details = `R−G: ${metrics.redness.toFixed(2)}, yellowness: ${metrics.yellowness.toFixed(2)}, sat: ${metrics.sat.toFixed(2)}, brightVar: ${metrics.brightVar.toFixed(2)}`;
+      return { risk, status, details };
+    }
+    function toBitmapOrImage(file){
+      return new Promise((resolve, reject)=>{
+        if (window.createImageBitmap){
+          createImageBitmap(file).then(resolve).catch(()=>loadViaImageTag(file).then(resolve).catch(reject));
+        } else {
+          loadViaImageTag(file).then(resolve).catch(reject);
+        }
+      });
+    }
+    function loadViaImageTag(file){
+      return new Promise((resolve, reject)=>{
+        const url = URL.createObjectURL(file);
+        const img = new Image(); img.onload = ()=>{ URL.revokeObjectURL(url); resolve(img); }; img.onerror = (e)=>{ URL.revokeObjectURL(url); reject(e); }; img.src = url;
+      });
+    }
+    function analyzeBitmap(img){
+      const maxSide=256, scale=Math.min(1, maxSide / Math.max(img.width, img.height));
+      const w=Math.max(1, Math.round(img.width*scale)), h=Math.max(1, Math.round(img.height*scale));
+      const c=document.createElement('canvas'); c.width=w; c.height=h; const ctx=c.getContext('2d', { willReadFrequently:true });
+      ctx.drawImage(img,0,0,w,h); const { data } = ctx.getImageData(0,0,w,h);
+      let n=0, satSum=0, brightSum=0, brightSq=0, redSum=0, yelSum=0;
+      for (let i=0;i<data.length;i+=4){ const r=data[i], g=data[i+1], b=data[i+2]; const max=Math.max(r,g,b), min=Math.min(r,g,b); const sat=max===0?0:(max-min)/max; const bright=0.2126*r+0.7152*g+0.0722*b; const redness=Math.max(0, r - (g+b)/2); const yellowness=Math.max(0, (r+g)/2 - b); satSum+=sat; brightSum+=bright; brightSq+=bright*bright; redSum+=redness; yelSum+=yellowness; n++; }
+      const meanBright=brightSum/n; const varBright=Math.max(0, brightSq/n - meanBright*meanBright);
+      return { redness: redSum/n, yellowness: yelSum/n, sat: satSum/n, brightVar: varBright };
+    }
+    function heuristicScore(m){ const redN=Math.min(1, m.redness/80); const yelN=Math.min(1, m.yellowness/60); const satN=Math.min(1, m.sat/0.6); const varN=Math.min(1, m.brightVar/4000); const s=0.45*redN+0.25*yelN+0.15*satN+0.15*varN; return Math.round(s*100); }
+
+    // History chart
+    function getHistory(){ const raw=localStorage.getItem(STORAGE_KEYS.riskHistory); return raw?JSON.parse(raw):[]; }
+    function setHistory(list){ localStorage.setItem(STORAGE_KEYS.riskHistory, JSON.stringify(list)); }
+    function pushRiskHistory(pt){ const list=getHistory(); list.push(pt); while(list.length>30) list.shift(); setHistory(list); }
+    function clamp(n,lo,hi){ return Math.max(lo, Math.min(hi, n)); }
+    function drawChart(){
+      const data=getHistory(); const canvas=el('riskChart'); if (!canvas) return; const ctx=canvas.getContext('2d'); const pad=32, W=canvas.width, H=canvas.height; ctx.clearRect(0,0,W,H);
+      ctx.globalAlpha=1; ctx.strokeStyle='#243056'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(pad,pad); ctx.lineTo(pad,H-pad); ctx.lineTo(W-pad,H-pad); ctx.stroke();
+      ctx.fillStyle='#9fb2cc'; ctx.font='12px system-ui, -apple-system, Segoe UI, Roboto';
+      for (let r=0;r<=5;r++){ const yVal=r*20; const y=H-pad-(yVal/100)*(H-2*pad); ctx.strokeStyle='rgba(255,255,255,0.05)'; ctx.beginPath(); ctx.moveTo(pad,y); ctx.lineTo(W-pad,y); ctx.stroke(); ctx.fillStyle='#9fb2cc'; ctx.fillText(String(yVal), 8, y+4); }
+      if (!data.length){ const rn=el('riskNow'); if (rn) rn.textContent='—'; return; }
+      const n=data.length, stepX=(W-2*pad)/Math.max(1,n-1); ctx.strokeStyle='#7dd3fc'; ctx.lineWidth=2; ctx.beginPath();
+      data.forEach((pt,i)=>{ const x=pad+i*stepX; const y=H-pad-(clamp(pt.risk,0,100)/100)*(H-2*pad); if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); }); ctx.stroke();
+      const y50=H-pad-0.5*(H-2*pad); ctx.strokeStyle='rgba(239,68,68,.6)'; ctx.setLineDash([6,4]); ctx.beginPath(); ctx.moveTo(pad,y50); ctx.lineTo(W-pad,y50); ctx.stroke(); ctx.setLineDash([]);
+      const rn=el('riskNow'); if (rn) rn.textContent=String(clamp(data[data.length-1].risk,0,100));
+    }
+
+    function renderResult(payload){
+      const box=el('result'); if (!box) return; box.style.display='grid';
+      if (payload.error){ box.innerHTML = `<div class="badge warn">⚠ Error</div><div class="subtle">${payload.error}</div>`; const rn=el('riskNow'); if (rn) rn.textContent='—'; return; }
+      const risk = clamp(Number(payload.risk)||0,0,100); const status=String(payload.status|| (risk>=50?'Potential infection':'Healthy')); const ok = status.toLowerCase().includes('healthy') && risk<50;
+      box.innerHTML = `
+        <div class="row" style="justify-content:space-between">
+          <div class="badge ${ok ? 'ok' : 'warn'}">${ok ? '✓ Status: Healthy' : '⚠ Warning: Potential infection'}</div>
+          <div class="chip">Risk: <strong style="margin-left:6px">${risk}</strong></div>
+        </div>
+        ${payload.details ? `<div class="subtle">${payload.details}</div>` : ''}`;
+      const rn=el('riskNow'); if (rn) rn.textContent=String(risk);
+    }
+
+    function main(){
+      try{
+        setTodayStr(); renderChecklist(); initAuth(); initUpload(); loadBackendUrl(); drawChart();
+        const lb=el('loginBtn'); if (lb) lb.addEventListener('click', signIn);
+        const lob=el('logoutBtn'); if (lob) lob.addEventListener('click', signOut);
+        const bu=el('backendUrl'); if (bu) bu.addEventListener('change', saveBackendUrl);
+        const rhb=el('resetHistoryBtn'); if (rhb) rhb.addEventListener('click', ()=>{ setHistory([]); drawChart(); const rn=el('riskNow'); if (rn) rn.textContent='—'; });
+        const sc=el('startCamBtn'); if (sc) sc.addEventListener('click', startCamera);
+        const st=el('stopCamBtn'); if (st) st.addEventListener('click', stopCamera);
+        const cp=el('captureBtn'); if (cp) cp.addEventListener('click', capturePhoto);
+        document.addEventListener('visibilitychange', ()=>{ if (document.hidden) stopCamera(); });
+        window.addEventListener('beforeunload', stopCamera);
+      }catch(err){ console.error('Init error', err); alert('Initialization error: ' + err.message); }
+    }
+
+    window.addEventListener('DOMContentLoaded', main);
+  })();
+</script>
+</body>
+</html>
