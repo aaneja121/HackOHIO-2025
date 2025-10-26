@@ -40,7 +40,7 @@ export default function HomePage() {
           <div className="text-center">
             <div className="flex items-center justify-center gap-2 mb-2">
               <Shield className="h-10 w-10 text-primary" />
-              <h1 className="text-4xl font-bold">Aegis</h1>
+              <h1 className="text-4xl font-bold">Healios</h1>
             </div>
             <p className="text-muted-foreground">AI-Powered Post-Surgical Recovery Assistant</p>
           </div>
@@ -57,7 +57,7 @@ export default function HomePage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Shield className="h-6 w-6 text-primary" />
-              <h1 className="text-2xl font-bold">Aegis</h1>
+              <h1 className="text-2xl font-bold">Healios</h1>
             </div>
             <Button variant="ghost" onClick={handleLogout}>
               <LogOut className="h-4 w-4 mr-2" />

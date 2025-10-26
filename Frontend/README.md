@@ -1,6 +1,6 @@
-# Aegis - AI Post-Surgical Recovery Assistant
+# Healios - AI Post-Surgical Recovery Assistant
 
-This repository contains the Aegis Next.js application — an AI-assisted interface for monitoring post-surgical wound recovery.
+This repository contains the Healios Next.js application — an AI-assisted interface for monitoring post-surgical wound recovery.
 
 Quick start (local):
 

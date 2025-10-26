@@ -42,7 +42,7 @@ export const AuthForm = () => {
         <CardDescription>
           {isLogin
             ? "Log in to access your recovery dashboard"
-            : "Join Aegis to monitor your post-surgical recovery"}
+            : "Join Healios to monitor your post-surgical recovery"}
         </CardDescription>
       </CardHeader>
       <CardContent>

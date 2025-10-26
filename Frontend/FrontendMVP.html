@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Aegis – Post‑Surgical Recovery Assistant (MVP)</title>
+  <title>Healios – Post‑Surgical Recovery Assistant (MVP)</title>
   <style>
     :root {
       --bg: #0b1020; /* deep navy */
@@ -128,7 +128,7 @@
       <div class="brand">
         <div class="badge" aria-hidden>Æ</div>
         <div>
-          <div style="font-size:15px">Aegis</div>
+          <div style="font-size:15px">Healios</div>
           <div class="subtle" style="font-size:12px; margin-top:-2px">AI Post‑Surgical Recovery Assistant</div>
         </div>
       </div>
@@ -191,7 +191,7 @@
           <div class="chart-wrap">
             <div class="row" style="justify-content:space-between">
               <div>
-                <div class="subtle" style="font-size:12px">Aegis Risk Score (0–100)</div>
+                <div class="subtle" style="font-size:12px">Healios Risk Score (0–100)</div>
                 <div style="font-size:28px; font-weight:800" id="riskNow">—</div>
               </div>
               <button class="btn" id="resetHistoryBtn" title="Clear local history">Reset</button>
@@ -212,7 +212,7 @@
       </aside>
     </div>
 
-    <div class="footer">© <span id="year"></span> Aegis – Hackathon MVP. For demo purposes only. Not a medical device.</div>
+    <div class="footer">© <span id="year"></span> Healios – Hackathon MVP. For demo purposes only. Not a medical device.</div>
   </div>
 
   <script>
@@ -229,10 +229,10 @@
       { id: 't4', label: 'Medication taken', done: false },
     ];
     const STORAGE_KEYS = {
-      email: 'aegis_email',
-      tasks: 'aegis_tasks_',
-      riskHistory: 'aegis_risk_history',
-      backendUrl: 'aegis_backend_url'
+      email: 'healios_email',
+      tasks: 'healios_tasks_',
+      riskHistory: 'healios_risk_history',
+      backendUrl: 'healios_backend_url'
     };
 
     // Date/strings
