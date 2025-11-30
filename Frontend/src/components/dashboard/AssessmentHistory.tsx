@@ -87,24 +87,29 @@ export const AssessmentHistory = ({ refreshTrigger }: AssessmentHistoryProps) =>
   }
 
   return (
-    <Card>
+    <Card className="border-0 bg-white shadow-sm dark:bg-gray-950">
       <CardHeader>
-        <CardTitle>Assessment History</CardTitle>
-        <CardDescription>Your recent wound assessments</CardDescription>
+        <CardTitle className="flex items-center gap-2">
+          <div className="rounded-lg bg-primary/10 p-2">
+            <CheckCircle className="h-5 w-5 text-primary" />
+          </div>
+          Assessment History
+        </CardTitle>
+        <CardDescription className="mt-2">Your recent wound assessments</CardDescription>
       </CardHeader>
       <CardContent>
         {assessments.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-8">
+          <p className="text-sm text-muted-foreground text-center py-12">
             No assessments yet. Upload your first wound photo to get started.
           </p>
         ) : (
-          <ScrollArea className="h-[400px] pr-4">
-            <div className="space-y-4">
+          <ScrollArea className="h-[500px] pr-4">
+            <div className="space-y-3">
               {assessments.map((assessment) => (
-                <Card key={assessment.id}>
+                <Card key={assessment.id} className="border bg-gray-50/50 dark:bg-gray-900/50 hover:bg-gray-100/50 dark:hover:bg-gray-900 transition-colors">
                   <CardContent className="p-4">
                     <div className="flex gap-4">
-                      <div className="relative w-24 h-24">
+                      <div className="relative w-20 h-20 flex-shrink-0">
                         <Image
                           src={assessment.image_url}
                           alt="Wound assessment"
@@ -112,27 +117,24 @@ export const AssessmentHistory = ({ refreshTrigger }: AssessmentHistoryProps) =>
                           className="object-cover rounded-md"
                         />
                       </div>
-                      <div className="flex-1 space-y-2">
-                        <div className="flex items-center justify-between">
+                      <div className="flex-1 min-w-0 space-y-2">
+                        <div className="flex items-center justify-between gap-2">
                           <div className="flex items-center gap-2">
                             {getStatusIcon(assessment.status)}
-                            <Badge variant={getStatusVariant(assessment.status)}>
+                            <Badge variant={getStatusVariant(assessment.status)} className="text-xs">
                               {assessment.status.toUpperCase()}
                             </Badge>
-                            <span className="text-sm text-muted-foreground">
-                              Risk Score: {assessment.risk_score || 0}/100
-                            </span>
                           </div>
-                          <span className="text-xs text-muted-foreground">
-                            {assessment.created_at ? format(new Date(assessment.created_at), "MMM d, yyyy") : "Unknown date"}
+                          <span className="text-xs text-muted-foreground flex-shrink-0">
+                            {assessment.created_at ? format(new Date(assessment.created_at), "MMM d") : "Unknown"}
                           </span>
                         </div>
-                        <p className="text-sm line-clamp-2">{assessment.ai_analysis || "No analysis available"}</p>
-                        {assessment.recommendations && (
+                        <div className="space-y-1">
                           <p className="text-xs text-muted-foreground">
-                            <strong>Recommendation:</strong> {assessment.recommendations}
+                            Risk: <span className="font-semibold text-foreground">{assessment.risk_score || 0}%</span>
                           </p>
-                        )}
+                          <p className="text-sm line-clamp-1">{assessment.ai_analysis || "No analysis"}</p>
+                        </div>
                       </div>
                     </div>
                   </CardContent>

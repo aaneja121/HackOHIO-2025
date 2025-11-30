@@ -1,13 +1,7 @@
 import tensorflow as tf
 import numpy as np
 from PIL import Image
-from io import BytesIO
-
-# --- IMPORTANT ---
-# You MUST change this to match your model's expected input size.
-# Common sizes are (224, 224), (256, 256), (299, 299), etc.
-TARGET_SIZE = (224, 224) 
-# ---
+from io import BytesIOTARGET_SIZE = (224, 224) 
 
 def load_model(model_path: str):
     """
@@ -38,14 +32,10 @@ def preprocess_image(image_bytes: bytes) -> np.ndarray:
     img = Image.open(BytesIO(image_bytes)).convert("RGB")
     img = img.resize(TARGET_SIZE)
     
-    # Convert image to numpy array
     img_array = np.array(img)
     
-    # Normalize the image (common practice)
     normalized_array = img_array / 255.0
     
-    # Expand dimensions to create a batch of 1
-    # Shape changes from (width, height, channels) to (1, width, height, channels)
     batch_array = np.expand_dims(normalized_array, axis=0)
     
     return batch_array

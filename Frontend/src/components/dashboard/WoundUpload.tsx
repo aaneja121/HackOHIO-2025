@@ -201,19 +201,21 @@ export const WoundUpload = ({ onAnalysisComplete }: WoundUploadProps) => {
   };
 
   return (
-    <Card>
+    <Card className="border-0 bg-white shadow-sm dark:bg-gray-950">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Camera className="h-5 w-5" />
+          <div className="rounded-lg bg-primary/10 p-2">
+            <Camera className="h-5 w-5 text-primary" />
+          </div>
           Upload Wound Photo
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="mt-2">
           Take a clear photo of your surgical wound for AI analysis
         </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          <div className="border-2 border-dashed rounded-lg p-8 text-center">
+          <div className="border-2 border-dashed rounded-lg p-8 text-center hover:border-primary/50 transition-colors">
             <input
               type="file"
               id="wound-upload"
@@ -222,7 +224,7 @@ export const WoundUpload = ({ onAnalysisComplete }: WoundUploadProps) => {
               disabled={uploading || analyzing}
               className="hidden"
             />
-            <label htmlFor="wound-upload" className="cursor-pointer">
+            <label htmlFor="wound-upload" className="cursor-pointer block">
               {uploading || analyzing ? (
                 <div className="flex flex-col items-center gap-2">
                   <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -231,12 +233,16 @@ export const WoundUpload = ({ onAnalysisComplete }: WoundUploadProps) => {
                   </p>
                 </div>
               ) : (
-                <div className="flex flex-col items-center gap-2">
-                  <Upload className="h-8 w-8 text-muted-foreground" />
-                  <p className="text-sm font-medium">Click to upload or take photo</p>
-                  <p className="text-xs text-muted-foreground">
-                    Supported: JPG, PNG, WEBP
-                  </p>
+                <div className="flex flex-col items-center gap-3">
+                  <div className="rounded-lg bg-primary/10 p-3">
+                    <Upload className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Click to upload or take a photo</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      JPG, PNG, or WEBP (max 10MB)
+                    </p>
+                  </div>
                 </div>
               )}
             </label>

@@ -1,7 +1,6 @@
 import os
 from fastapi import Header, HTTPException, status
 
-# Use .env if present; default keeps dev unblocked.
 DEMO_API_KEY: str = os.getenv("API_KEY_DEMO", "demo-key-123")
 
 async def require_api_key(
