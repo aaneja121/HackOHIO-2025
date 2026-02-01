@@ -1,12 +1,22 @@
-import tensorflow as tf
 import numpy as np
 from PIL import Image
-from io import BytesIOTARGET_SIZE = (224, 224) 
+from io import BytesIO
+
+try:
+    import tensorflow as tf
+except ImportError:
+    tf = None
+
+TARGET_SIZE = (224, 224) 
 
 def load_model(model_path: str):
     """
     Loads the Keras .h5 model file.
     """
+    if tf is None:
+        print("TensorFlow not installed. Model loading skipped.")
+        return None
+
     try:
         model = tf.keras.models.load_model(model_path)
         print(f"Successfully loaded model from {model_path}")
