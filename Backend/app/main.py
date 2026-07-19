@@ -123,12 +123,24 @@ async def upload(file: UploadFile = File(...)) -> UploadResponse:
         raise HTTPException(status_code=400, detail="Empty file")
     return UploadResponse(name=file.filename, size=len(data))
 
+@app.get("/debug_model", include_in_schema=False)
+def debug_model():
+    return {"global_model_is_none": GLOBAL_MODEL is None, "model_repr": str(GLOBAL_MODEL)}
+
 @app.post("/predict", response_model=PredictResponse, dependencies=[Depends(require_api_key)])
 async def predict(request: Request, file: UploadFile = File(...)) -> PredictResponse:
     """
     Accepts an image file, preprocesses it, runs it through the loaded AI model,
     and returns the model's predictions.
     """
+    global GLOBAL_MODEL
+    print("DEBUG in /predict: GLOBAL_MODEL is", GLOBAL_MODEL)
+    if GLOBAL_MODEL is None:
+        print("Lazy loading model in predict endpoint...")
+        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+        model_path = os.path.join(BASE_DIR, "wound_model_multiclass_finetuned.h5")
+        GLOBAL_MODEL = load_model(model_path)
+        
     if GLOBAL_MODEL is None:
         raise HTTPException(status_code=503, detail="Model is not loaded")
 
