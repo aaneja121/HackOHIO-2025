@@ -1,5 +1,5 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-const DEMO_API_KEY = 'demo-key-123'; // Matches backend default
+
 
 export interface User {
     id: number;
@@ -61,9 +61,7 @@ export const api = {
 
         const res = await fetch(`${API_URL}/predict`, {
             method: 'POST',
-            headers: {
-                'X-API-Key': DEMO_API_KEY
-            },
+
             body: formData
         });
         if (!res.ok) throw new Error('Prediction failed');

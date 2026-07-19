@@ -5,7 +5,7 @@ from typing import List
 from sqlmodel import Session, select
 import os
 
-from .auth import require_api_key
+
 from .schemas import (
     PingResponse, 
     UploadResponse,
@@ -111,11 +111,11 @@ def get_symptom_logs(external_id: str, session: Session = Depends(get_session)):
 
 
 # --- AI Endpoints ---
-@app.get("/secure", dependencies=[Depends(require_api_key)])
+@app.get("/secure")
 def secure_ping() -> dict:
     return {"ok": True}
 
-@app.post("/upload", response_model=UploadResponse, dependencies=[Depends(require_api_key)])
+@app.post("/upload", response_model=UploadResponse)
 async def upload(file: UploadFile = File(...)) -> UploadResponse:
     # This endpoint remains the same, just for uploading
     data = await file.read()
@@ -127,7 +127,7 @@ async def upload(file: UploadFile = File(...)) -> UploadResponse:
 def debug_model():
     return {"global_model_is_none": GLOBAL_MODEL is None, "model_repr": str(GLOBAL_MODEL)}
 
-@app.post("/predict", response_model=PredictResponse, dependencies=[Depends(require_api_key)])
+@app.post("/predict", response_model=PredictResponse)
 async def predict(request: Request, file: UploadFile = File(...)) -> PredictResponse:
     """
     Accepts an image file, preprocesses it, runs it through the loaded AI model,
