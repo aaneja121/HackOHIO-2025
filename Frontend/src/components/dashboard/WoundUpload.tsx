@@ -1,31 +1,19 @@
 import { useState } from "react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Camera, Upload, Loader2 } from "lucide-react";
+import { Camera, Upload, Loader2, RefreshCw, AlertCircle, CheckCircle, AlertTriangle } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Progress } from "@/components/ui/progress";
 
-// --- NEW: Define API constants ---
-// Your backend is running on port 8000
-const API_URL = "http://127.0.0.1:8000/predict"; 
-// This is the key from your Backend/.env file
+const API_URL = "http://127.0.0.1:8000/predict";
 const API_KEY = "demo-key-123";
-// ---
 
 interface WoundUploadProps {
   onAnalysisComplete: () => void;
 }
 
-// --- NEW: Helper function to interpret model output ---
-/**
- * Translates the raw prediction array from the AI model into human-readable data
- * for the UI.
- * * !!! IMPORTANT !!!
- * You MUST update this logic to match your model's classes.
- * We are ASSUMING:
- * - predictions[0] = "Healthy" probability
- * - predictions[1] = "At-Risk" probability
- * - predictions[2] = "Critical" probability
- */
 const interpretPredictions = (predictions: number[]) => {
   const classNames = [
     'Abrasions', 'Bruises', 'Burns', 'Cut', 'Diabetic Wounds',
@@ -43,121 +31,112 @@ const interpretPredictions = (predictions: number[]) => {
   });
 
   const predictedClass = classNames[maxIndex] || "unknown";
-  let status = 'at-risk'; // Default to at-risk
+  let status = 'warning';
   let analysis = "";
   let recommendations = "";
 
-  // Logic to determine risk. We'll set it as (100 - % chance of "Normal")
-  // This is a simple heuristic: the less "normal" it is, the higher the risk.
   const normalProbability = predictions[6] || 0;
   const riskScore = Math.round((1.0 - normalProbability) * 100);
 
-  // --- This is the key logic mapping 10 classes to 3 statuses ---
   switch (predictedClass) {
     case 'Normal':
       status = 'healthy';
       analysis = "AI analysis: The area appears to be normal, healthy skin or a well-healed wound.";
       recommendations = "Continue to monitor the area as instructed by your doctor.";
       break;
-
     case 'Surgical Wounds':
-      status = 'at-risk'; // This is the class we are most interested in monitoring
+      status = 'warning';
       analysis = "AI analysis: A surgical wound has been identified. It appears to be in a standard healing phase.";
       recommendations = "Keep the area clean and dry. Watch for any changes, such as increased redness, swelling, or discharge.";
       break;
-
     case 'Abrasions':
     case 'Bruises':
     case 'Burns':
     case 'Cut':
     case 'Laseration':
-      status = 'at-risk'; // These are other wound types, not "normal"
+      status = 'warning';
       analysis = `AI analysis: An injury identified as '${predictedClass}' has been detected.`;
       recommendations = "Please follow standard first-aid for this type of injury. If this is near your surgical site, monitor it closely.";
       break;
-
     case 'Diabetic Wounds':
     case 'Pressure Wounds':
     case 'Venous Wounds':
-      status = 'critical'; // These are high-risk wound types
+      status = 'critical';
       analysis = `AI analysis: A high-risk wound type ('${predictedClass}') has been detected. This requires attention.`;
       recommendations = "Contact your healthcare provider immediately for evaluation, especially if this is near your surgical site.";
       break;
-
     default:
-      status = 'at-risk';
+      status = 'warning';
       analysis = "AI analysis: Unable to clearly classify the image.";
       recommendations = "Please try taking a clearer photo. If concerned, contact your provider.";
   }
 
   return {
-    riskScore: Math.min(100, riskScore), // Cap at 100
+    riskScore: Math.min(100, riskScore),
     status,
     analysis,
     recommendations,
   };
 };
 
-// ---
-
 export const WoundUpload = ({ onAnalysisComplete }: WoundUploadProps) => {
-  const [uploading, setUploading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
+  const [resultData, setResultData] = useState<any>(null);
+  const [showResultDialog, setShowResultDialog] = useState(false);
+  
   const { toast } = useToast();
 
-  // --- UPDATED: This function now makes a real API call ---
-  const handleFileUpload = async (file: File) => {
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith("image/")) {
+        toast({ title: "Invalid file", description: "Please select an image file", variant: "destructive" });
+        return;
+      }
+      setSelectedFile(file);
+      setPreviewUrl(URL.createObjectURL(file));
+      setResultData(null); // Reset previous results
+    }
+  };
+
+  const handleClearSelection = () => {
+    setSelectedFile(null);
+    setPreviewUrl(null);
+    setResultData(null);
+  };
+
+  const handleAnalyze = async () => {
+    if (!selectedFile) return;
+
     try {
-      setUploading(true);
-      
-      // Create a local URL for the uploaded image
-      const imageUrl = URL.createObjectURL(file);
-      
-      // --- Prepare data for the API ---
-      const formData = new FormData();
-      formData.append("file", file); // The key "file" must match the backend File(...)
-
-      setUploading(false);
       setAnalyzing(true);
+      
+      const formData = new FormData();
+      formData.append("file", selectedFile);
 
-      toast({
-        title: "Analyzing wound...",
-        description: "Sending image to AI model...",
-      });
-
-      // --- DELETED: Mock analysis delay ---
-      // await new Promise(resolve => setTimeout(resolve, 1500));
-
-      // --- NEW: Make the actual API call ---
       const response = await fetch(API_URL, {
         method: "POST",
-        headers: {
-          // The backend auth.py expects this header
-          "X-API-Key": API_KEY, 
-        },
+        headers: { "X-API-Key": API_KEY },
         body: formData,
       });
 
       if (!response.ok) {
-        // Try to get a nice error message from the backend
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.detail || "Analysis failed");
       }
 
-      // Get the JSON response, which looks like:
-      // { "filename": "...", "content_type": "...", "predictions": [0.1, 0.8, 0.1] }
       const result = await response.json();
-
-      // --- UPDATED: Use the new helper function ---
-      // This replaces the old mock analysisData object
       const analysisData = interpretPredictions(result.predictions);
+      
+      setResultData(analysisData);
 
-      // Store analysis in localStorage for demo persistence
       const assessments = JSON.parse(localStorage.getItem('wound_assessments') || '[]');
       assessments.push({
         id: Date.now(),
         created_at: new Date().toISOString(),
-        image_url: imageUrl,
+        image_url: previewUrl,
         risk_score: analysisData.riskScore,
         status: analysisData.status,
         ai_analysis: analysisData.analysis,
@@ -165,90 +144,132 @@ export const WoundUpload = ({ onAnalysisComplete }: WoundUploadProps) => {
       });
       localStorage.setItem('wound_assessments', JSON.stringify(assessments));
 
-      toast({
-        title: "Analysis complete!",
-        description: `Status: ${analysisData.status.toUpperCase()}`,
-        variant: analysisData.status === "critical" ? "destructive" : "default",
-      });
-
       onAnalysisComplete();
+      setShowResultDialog(true);
     } catch (error: any) {
       console.error("Analysis error:", error);
       toast({
         title: "Error",
-        description: error.message || "Failed to process image",
+        description: error.message || "Failed to process image. Make sure the backend is running.",
         variant: "destructive",
       });
     } finally {
-      setUploading(false);
       setAnalyzing(false);
     }
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (!file.type.startsWith("image/")) {
-        toast({
-          title: "Invalid file",
-          description: "Please select an image file",
-          variant: "destructive",
-        });
-        return;
-      }
-      handleFileUpload(file);
-    }
-  };
-
   return (
-    <Card className="border-0 bg-white shadow-sm dark:bg-gray-950">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <div className="rounded-lg bg-primary/10 p-2">
-            <Camera className="h-5 w-5 text-primary" />
-          </div>
-          Upload Wound Photo
-        </CardTitle>
-        <CardDescription className="mt-2">
-          Take a clear photo of your surgical wound for AI analysis
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          <div className="border-2 border-dashed rounded-lg p-8 text-center hover:border-primary/50 transition-colors">
-            <input
-              type="file"
-              id="wound-upload"
-              accept="image/*"
-              onChange={handleFileSelect}
-              disabled={uploading || analyzing}
-              className="hidden"
-            />
-            <label htmlFor="wound-upload" className="cursor-pointer block">
-              {uploading || analyzing ? (
-                <div className="flex flex-col items-center gap-2">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                  <p className="text-sm text-muted-foreground">
-                    {uploading ? "Uploading..." : "Analyzing with AI..."}
-                  </p>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center gap-3">
-                  <div className="rounded-lg bg-primary/10 p-3">
-                    <Upload className="h-6 w-6 text-primary" />
+    <>
+      <Card className="border-0 bg-white/60 backdrop-blur-md shadow-sm dark:bg-gray-950/60 transition-all hover:shadow-md">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <div className="rounded-lg bg-primary/10 p-2">
+              <Camera className="h-5 w-5 text-primary" />
+            </div>
+            Upload Wound Photo
+          </CardTitle>
+          <CardDescription className="mt-2">
+            Select a clear photo of your surgical wound for AI analysis
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {!previewUrl ? (
+            <div className="border-2 border-dashed rounded-xl p-10 text-center hover:border-primary/50 hover:bg-primary/5 transition-all group">
+              <input type="file" id="wound-upload" accept="image/*" onChange={handleFileSelect} className="hidden" />
+              <label htmlFor="wound-upload" className="cursor-pointer block">
+                <div className="flex flex-col items-center gap-4">
+                  <div className="rounded-full bg-primary/10 p-4 group-hover:scale-110 transition-transform duration-300">
+                    <Upload className="h-8 w-8 text-primary" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium">Click to upload or take a photo</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      JPG, PNG, or WEBP (max 10MB)
-                    </p>
+                    <p className="text-base font-medium">Click to upload or drag and drop</p>
+                    <p className="text-sm text-muted-foreground mt-1">JPG, PNG, or WEBP (max 10MB)</p>
                   </div>
                 </div>
-              )}
-            </label>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+              </label>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              <div className="relative aspect-video rounded-xl overflow-hidden border-2 border-primary/20 bg-black/5">
+                <Image src={previewUrl} alt="Preview" fill className="object-cover" />
+                
+                {/* Sci-fi Scanning Animation Overlay */}
+                {analyzing && (
+                  <div className="absolute inset-0 z-10 pointer-events-none">
+                    <div className="absolute inset-0 bg-primary/20 animate-pulse" />
+                    <div className="w-full h-1 bg-primary shadow-[0_0_15px_3px_rgba(13,148,136,0.8)] absolute top-0 animate-[scan_2s_ease-in-out_infinite]" />
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex gap-3">
+                <Button variant="outline" className="w-full" onClick={handleClearSelection} disabled={analyzing}>
+                  <RefreshCw className="h-4 w-4 mr-2" /> Retake
+                </Button>
+                <Button className="w-full relative overflow-hidden bg-primary hover:bg-primary/90 text-white" onClick={handleAnalyze} disabled={analyzing}>
+                  {analyzing ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Analyzing...
+                    </>
+                  ) : (
+                    "Analyze Wound"
+                  )}
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Dialog open={showResultDialog} onOpenChange={setShowResultDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Analysis Complete</DialogTitle>
+            <DialogDescription>
+              AI assessment of your uploaded wound photo.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {resultData && (
+            <div className="space-y-6 py-4">
+              <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-gray-900 border">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-muted-foreground">Detected Status</p>
+                  <div className="flex items-center gap-2">
+                    {resultData.status === 'healthy' && <CheckCircle className="h-5 w-5 text-green-500" />}
+                    {resultData.status === 'warning' && <AlertTriangle className="h-5 w-5 text-yellow-500" />}
+                    {resultData.status === 'critical' && <AlertCircle className="h-5 w-5 text-red-500" />}
+                    <span className="text-lg font-bold capitalize">{resultData.status}</span>
+                  </div>
+                </div>
+                <div className="text-right space-y-1">
+                  <p className="text-sm font-medium text-muted-foreground">Risk Score</p>
+                  <p className="text-2xl font-bold text-primary">{resultData.riskScore}%</p>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <h4 className="font-semibold text-sm">AI Diagnosis</h4>
+                <p className="text-sm text-muted-foreground leading-relaxed">{resultData.analysis}</p>
+              </div>
+
+              <div className="space-y-2">
+                <h4 className="font-semibold text-sm">Recommendations</h4>
+                <p className="text-sm text-muted-foreground leading-relaxed">{resultData.recommendations}</p>
+              </div>
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button onClick={() => {
+              setShowResultDialog(false);
+              handleClearSelection();
+            }} className="w-full">
+              Done
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };

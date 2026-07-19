@@ -4,6 +4,7 @@ from io import BytesIO
 
 try:
     import tensorflow as tf
+    import keras
 except ImportError:
     tf = None
 
@@ -18,7 +19,24 @@ def load_model(model_path: str):
         return None
 
     try:
-        model = tf.keras.models.load_model(model_path)
+        import keras
+        class TrueDivide(keras.layers.Layer):
+            def __init__(self, **kwargs):
+                super().__init__(**kwargs)
+            def call(self, x, y, **kwargs):
+                return x / y
+                
+        class Subtract(keras.layers.Layer):
+            def __init__(self, **kwargs):
+                super().__init__(**kwargs)
+            def call(self, x, y, **kwargs):
+                return x - y
+            
+        custom_objects = {
+            'TrueDivide': TrueDivide,
+            'Subtract': Subtract
+        }
+        model = tf.keras.models.load_model(model_path, compile=False, custom_objects=custom_objects)
         print(f"Successfully loaded model from {model_path}")
         return model
     except Exception as e:

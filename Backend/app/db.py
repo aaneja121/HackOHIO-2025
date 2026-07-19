@@ -3,7 +3,9 @@ from typing import Optional
 from datetime import datetime
 from sqlmodel import SQLModel, Field, Session, create_engine, select
 
-DB_URL = os.getenv("DATABASE_URL", "sqlite:///./healios.db")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+default_db_path = os.path.join(BASE_DIR, "healios.db")
+DB_URL = os.getenv("DATABASE_URL", f"sqlite:///{default_db_path}")
 engine = create_engine(DB_URL, connect_args={"check_same_thread": False})
 
 class User(SQLModel, table=True):

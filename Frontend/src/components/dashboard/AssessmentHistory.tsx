@@ -105,41 +105,54 @@ export const AssessmentHistory = ({ refreshTrigger }: AssessmentHistoryProps) =>
         ) : (
           <ScrollArea className="h-[500px] pr-4">
             <div className="space-y-3">
-              {assessments.map((assessment) => (
-                <Card key={assessment.id} className="border bg-gray-50/50 dark:bg-gray-900/50 hover:bg-gray-100/50 dark:hover:bg-gray-900 transition-colors">
-                  <CardContent className="p-4">
-                    <div className="flex gap-4">
-                      <div className="relative w-20 h-20 flex-shrink-0">
-                        <Image
-                          src={assessment.image_url}
-                          alt="Wound assessment"
-                          fill
-                          className="object-cover rounded-md"
-                        />
-                      </div>
-                      <div className="flex-1 min-w-0 space-y-2">
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="flex items-center gap-2">
-                            {getStatusIcon(assessment.status)}
-                            <Badge variant={getStatusVariant(assessment.status)} className="text-xs">
-                              {assessment.status.toUpperCase()}
-                            </Badge>
+              {assessments.map((assessment) => {
+                const isCritical = assessment.status === 'critical';
+                const isWarning = assessment.status === 'warning';
+                const isHealthy = assessment.status === 'healthy';
+                
+                return (
+                  <Card 
+                    key={assessment.id} 
+                    className={`border overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-md bg-white dark:bg-gray-950
+                      ${isCritical ? 'border-l-4 border-l-red-500' : ''}
+                      ${isWarning ? 'border-l-4 border-l-yellow-500' : ''}
+                      ${isHealthy ? 'border-l-4 border-l-green-500' : ''}
+                    `}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex gap-4">
+                        <div className="relative w-20 h-20 flex-shrink-0">
+                          <Image
+                            src={assessment.image_url}
+                            alt="Wound assessment"
+                            fill
+                            className="object-cover rounded-md"
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0 space-y-2">
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                              {getStatusIcon(assessment.status)}
+                              <Badge variant={getStatusVariant(assessment.status)} className="text-xs">
+                                {assessment.status.toUpperCase()}
+                              </Badge>
+                            </div>
+                            <span className="text-xs text-muted-foreground flex-shrink-0">
+                              {assessment.created_at ? format(new Date(assessment.created_at), "MMM d") : "Unknown"}
+                            </span>
                           </div>
-                          <span className="text-xs text-muted-foreground flex-shrink-0">
-                            {assessment.created_at ? format(new Date(assessment.created_at), "MMM d") : "Unknown"}
-                          </span>
-                        </div>
-                        <div className="space-y-1">
-                          <p className="text-xs text-muted-foreground">
-                            Risk: <span className="font-semibold text-foreground">{assessment.risk_score || 0}%</span>
-                          </p>
-                          <p className="text-sm line-clamp-1">{assessment.ai_analysis || "No analysis"}</p>
+                          <div className="space-y-1">
+                            <p className="text-xs text-muted-foreground">
+                              Risk Score: <span className="font-semibold text-foreground">{assessment.risk_score || 0}%</span>
+                            </p>
+                            <p className="text-sm line-clamp-1 text-muted-foreground">{assessment.ai_analysis || "No analysis"}</p>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </ScrollArea>
         )}

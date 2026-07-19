@@ -1,5 +1,5 @@
 {
-  "name": "healios-vite",
+  "name": "healios-frontend",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -66,14 +66,13 @@
     "@types/node": "^22.16.5",
     "@types/react": "^18.3.23",
     "@types/react-dom": "^18.3.7",
-    "@vitejs/plugin-react": "^4.3.0",
     "autoprefixer": "^10.4.21",
     "babel-preset-next": "^1.4.0",
     "baseline-browser-mapping": "^2.8.32",
     "eslint": "^8.57.0",
+    "eslint-config-next": "^14.0.0",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.17",
-    "typescript": "^5.8.3",
-    "vite": "^7.2.2"
+    "typescript": "^5.8.3"
   }
 }

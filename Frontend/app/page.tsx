@@ -41,30 +41,37 @@ export default function HomePage() {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-12">
-        <div className="mx-auto max-w-3xl space-y-8">
-          {/* Welcome Card */}
-          <Card className="border-0 bg-white shadow-sm dark:bg-gray-950">
-            <CardHeader>
-              <div className="flex items-start gap-3">
-                <div className="rounded-lg bg-primary/10 p-2">
-                  <Activity className="h-5 w-5 text-primary" />
+      <main className="container mx-auto px-4 py-12 max-w-6xl">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          
+          {/* Left Column: Upload */}
+          <div className="lg:col-span-1 space-y-6">
+            {/* Welcome Card */}
+            <Card className="border-0 bg-white/60 backdrop-blur-md shadow-sm dark:bg-gray-950/60">
+              <CardHeader>
+                <div className="flex items-start gap-3">
+                  <div className="rounded-lg bg-primary/10 p-2">
+                    <Activity className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="flex-1">
+                    <CardTitle className="text-xl">Monitor Recovery</CardTitle>
+                    <CardDescription className="mt-2 text-sm leading-relaxed">
+                      Upload photos of your surgical wound for instant AI-powered analysis and personalized recommendations.
+                    </CardDescription>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <CardTitle className="text-2xl">Monitor Your Recovery</CardTitle>
-                  <CardDescription className="mt-2 text-base">
-                    Upload photos of your surgical wound for instant AI-powered analysis and personalized recommendations.
-                  </CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-          </Card>
+              </CardHeader>
+            </Card>
 
-          {/* Upload Section */}
-          <WoundUpload onAnalysisComplete={handleAnalysisComplete} />
+            {/* Upload Section */}
+            <WoundUpload onAnalysisComplete={handleAnalysisComplete} />
+          </div>
 
-          {/* History Section */}
-          <AssessmentHistory refreshTrigger={refreshTrigger} />
+          {/* Right Column: History */}
+          <div className="lg:col-span-2">
+            <AssessmentHistory refreshTrigger={refreshTrigger} />
+          </div>
+
         </div>
       </main>
     </div>

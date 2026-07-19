@@ -4,5 +4,7 @@ pydantic>=2
 python-dotenv
 python-multipart
 tensorflow
+tf_keras
+Pillow
 # optional if/when you use it:
 sqlmodel

@@ -1,8 +1,9 @@
-from fastapi import FastAPI, Depends, UploadFile, File, HTTPException, Query
+from fastapi import FastAPI, Depends, UploadFile, File, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from typing import List 
 from sqlmodel import Session, select
+import os
 
 from .auth import require_api_key
 from .schemas import (
@@ -21,25 +22,33 @@ load_dotenv()
 
 app = FastAPI()
 
+GLOBAL_MODEL = None
+
 # --- Model Loading & DB Init ---
 @app.on_event("startup")
 def startup_event():
     """
     Load the AI model and initialize database.
     """
+    global GLOBAL_MODEL
     # 1. Load Model
-    model_path = "app/wound_model_multiclass_finetuned.h5"
-    app.state.model = load_model(model_path)
-    if app.state.model is None:
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    model_path = os.path.join(BASE_DIR, "wound_model_multiclass_finetuned.h5")
+    GLOBAL_MODEL = load_model(model_path)
+    if GLOBAL_MODEL is None:
         print(f"FATAL: Model from {model_path} could not be loaded.")
     
     # 2. Init DB
     init_db()
     print("Database initialized.")
 
+# Read allowed origins from env, default to local dev and wildcard
+allowed_origins_env = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:5173,*")
+allowed_origins = [origin.strip() for origin in allowed_origins_env.split(",") if origin.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:5173", "*"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -115,12 +124,12 @@ async def upload(file: UploadFile = File(...)) -> UploadResponse:
     return UploadResponse(name=file.filename, size=len(data))
 
 @app.post("/predict", response_model=PredictResponse, dependencies=[Depends(require_api_key)])
-async def predict(file: UploadFile = File(...)) -> PredictResponse:
+async def predict(request: Request, file: UploadFile = File(...)) -> PredictResponse:
     """
     Accepts an image file, preprocesses it, runs it through the loaded AI model,
     and returns the model's predictions.
     """
-    if not app.state.model:
+    if GLOBAL_MODEL is None:
         raise HTTPException(status_code=503, detail="Model is not loaded")
 
     image_bytes = await file.read()
@@ -130,7 +139,7 @@ async def predict(file: UploadFile = File(...)) -> PredictResponse:
     try:
         processed_image = preprocess_image(image_bytes)
         
-        raw_predictions = app.state.model.predict(processed_image)
+        raw_predictions = GLOBAL_MODEL.predict(processed_image)
         
         predictions_list = raw_predictions[0].tolist()
         

@@ -1,0 +1,27 @@
+services:
+  # Backend FastAPI Service
+  - type: web
+    name: healios-backend
+    env: python
+    buildCommand: "pip install -r Backend/requirements.txt"
+    startCommand: "cd Backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.12
+      - key: CORS_ORIGINS
+        value: "https://healios-frontend.onrender.com"
+      - key: DATABASE_URL
+        # Remove this or set to a valid Postgres URI if using a managed database
+        value: "sqlite:////opt/render/project/src/Backend/app/healios.db"
+
+  # Frontend Next.js Service
+  - type: web
+    name: healios-frontend
+    env: node
+    buildCommand: "cd Frontend && npm install && npm run build"
+    startCommand: "cd Frontend && npm run start"
+    envVars:
+      - key: NODE_VERSION
+        value: 18.17.0
+      - key: NEXT_PUBLIC_API_URL
+        value: "https://healios-backend.onrender.com"
